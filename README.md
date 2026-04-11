@@ -2,16 +2,7 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
-
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+This project is a content-based music recommender that scores songs against a user's stated preferences — genre, mood, and energy level — and returns the top 5 matches from an 18-song catalog. Each song gets points for matching the user's genre (up to +1.0), mood (up to +1.0), and how close its energy is to the target (up to +2.0), for a maximum score of 4.0. The system runs seven user profiles — three realistic listener types and four adversarial edge cases — to test where the scoring logic holds up and where it breaks down. Key findings include a single-song genre filter bubble (13 of 15 genres have only one song), a silent energy dead zone between 0.46 and 0.71, and no confidence signal when a requested genre doesn't exist in the catalog at all.
 
 ---
 
