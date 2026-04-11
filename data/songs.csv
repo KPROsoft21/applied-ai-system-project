@@ -1,19 +1,19 @@
-id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
-1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
-2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
-3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
-4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
-5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
-6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
-7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
-8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
-9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
-10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
-11,Gold Chain Theory,Dusty Crates,hip-hop,uplifting,0.78,95,0.73,0.85,0.12
-12,3am in January,Hollow Verb,r&b,sad,0.31,68,0.22,0.44,0.63
-13,Requiem for a Houseplant,The Ivory Set,classical,melancholic,0.18,52,0.30,0.21,0.97
-14,Drop Protocol,Circuit Fever,edm,euphoric,0.96,140,0.80,0.94,0.03
-15,Gravel Road Gospel,Mae Hollow,country,nostalgic,0.44,104,0.76,0.57,0.82
-16,Iron Curtain,Blunt Force Drama,metal,angry,0.97,168,0.18,0.55,0.07
-17,Boogie Architecture,The Slap Collective,funk,soulful,0.72,112,0.88,0.91,0.29
-18,Velvet Underground Feeling,Sable Vox,soul,romantic,0.45,82,0.79,0.50,0.74
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,popularity,release_decade,mood_tags,instrumental,subgenre
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18,78,2020s,happy|uplifting|summery,0,electropop
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71,65,2020s,chill|focused|dreamy,1,lo-fi hip-hop
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10,72,2010s,intense|aggressive|powerful,0,alternative rock
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86,58,2020s,chill|peaceful|rainy,1,lo-fi hip-hop
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05,85,2020s,intense|motivating|energetic,0,dance pop
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92,42,2010s,chill|dreamy|atmospheric,1,space ambient
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89,55,2010s,relaxed|cozy|nostalgic,0,smooth jazz
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22,69,2020s,moody|nostalgic|cinematic,1,retrowave
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78,61,2020s,focused|calm|productive,1,lo-fi hip-hop
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35,74,2020s,happy|romantic|breezy,0,indie pop
+11,Gold Chain Theory,Dusty Crates,hip-hop,uplifting,0.78,95,0.73,0.85,0.12,81,2010s,uplifting|confident|groovy,0,conscious hip-hop
+12,3am in January,Hollow Verb,r&b,sad,0.31,68,0.22,0.44,0.63,67,2020s,sad|heartbreak|introspective,0,alternative r&b
+13,Requiem for a Houseplant,The Ivory Set,classical,melancholic,0.18,52,0.30,0.21,0.97,38,2010s,melancholic|peaceful|introspective,1,contemporary classical
+14,Drop Protocol,Circuit Fever,edm,euphoric,0.96,140,0.80,0.94,0.03,88,2020s,euphoric|energetic|festival,1,progressive house
+15,Gravel Road Gospel,Mae Hollow,country,nostalgic,0.44,104,0.76,0.57,0.82,52,2010s,nostalgic|heartfelt|americana,0,americana
+16,Iron Curtain,Blunt Force Drama,metal,angry,0.97,168,0.18,0.55,0.07,76,2010s,angry|aggressive|powerful,0,heavy metal
+17,Boogie Architecture,The Slap Collective,funk,soulful,0.72,112,0.88,0.91,0.29,63,2020s,soulful|groovy|funky,0,neo-funk
+18,Velvet Underground Feeling,Sable Vox,soul,romantic,0.45,82,0.79,0.50,0.74,59,2010s,romantic|soulful|warm,0,neo-soul

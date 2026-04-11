@@ -1,86 +1,111 @@
 """
-Command line runner for the Music Recommender Simulation.
+Music Recommender Simulation — main runner.
 
-Runs three standard user profiles and four adversarial/edge-case profiles
-to evaluate scoring logic and surface unexpected behaviour.
-
-Scoring recap (max 4.0 pts per song):
-  +2.0  exact genre match
-  +1.0  exact mood match
-  +1.0  energy proximity: 1 - |song.energy - target_energy|
+Challenges implemented:
+  1. Five new song features scored with explicit math rules.
+  2. Four scoring modes: balanced, genre_first, mood_first, energy_focused.
+  3. Diversity penalty: repeat artists and genre saturation are penalised.
+  4. Tabulate-based summary table for every profile's top-5.
 """
 
-from src.recommender import load_songs, recommend_songs
+from tabulate import tabulate
+from src.recommender import load_songs, recommend_songs, SCORING_MODES
 
+# ── helpers ──────────────────────────────────────────────────────────────────
 
-# ---------------------------------------------------------------------------
-# Standard profiles
-# ---------------------------------------------------------------------------
+def _max_score(mode: str, user_prefs: dict) -> float:
+    """Return the theoretical maximum score for a given mode + pref set."""
+    base = SCORING_MODES.get(mode, SCORING_MODES["balanced"])["base_max"]
+    bonus = 0.0
+    if user_prefs.get("popularity_target") is not None: bonus += 0.50
+    if user_prefs.get("preferred_decade"):               bonus += 0.50
+    if user_prefs.get("preferred_mood_tags"):            bonus += 1.00
+    if user_prefs.get("wants_instrumental") is not None: bonus += 0.25
+    if user_prefs.get("preferred_subgenre"):             bonus += 0.50
+    return base + bonus
+
+# ── Standard profiles ─────────────────────────────────────────────────────────
+
 HIGH_ENERGY_POP = {
-    "label":         "High-Energy Pop",
-    "genre":         "pop",
-    "mood":          "happy",
-    "target_energy": 0.9,
+    "label":               "High-Energy Pop",
+    "mode":                "genre_first",
+    # core
+    "genre":               "pop",
+    "mood":                "happy",
+    "target_energy":       0.9,
+    # challenge 1 extras
+    "popularity_target":   80,
+    "preferred_decade":    "2020s",
+    "preferred_mood_tags": ["happy", "uplifting", "energetic"],
+    "wants_instrumental":  False,
+    "preferred_subgenre":  "dance pop",
 }
 
 CHILL_LOFI = {
-    "label":         "Chill Lofi",
-    "genre":         "lofi",
-    "mood":          "chill",
-    "target_energy": 0.25,
+    "label":               "Chill Lofi",
+    "mode":                "mood_first",
+    "genre":               "lofi",
+    "mood":                "chill",
+    "target_energy":       0.25,
+    "popularity_target":   60,
+    "preferred_decade":    "2020s",
+    "preferred_mood_tags": ["chill", "focused", "peaceful"],
+    "wants_instrumental":  True,
+    "preferred_subgenre":  "lo-fi hip-hop",
 }
 
 DEEP_INTENSE_ROCK = {
-    "label":         "Deep Intense Rock",
-    "genre":         "rock",
-    "mood":          "intense",
-    "target_energy": 0.92,
+    "label":               "Deep Intense Rock",
+    "mode":                "energy_focused",
+    "genre":               "rock",
+    "mood":                "intense",
+    "target_energy":       0.92,
+    "popularity_target":   75,
+    "preferred_decade":    "2010s",
+    "preferred_mood_tags": ["intense", "aggressive", "powerful"],
+    "wants_instrumental":  False,
+    "preferred_subgenre":  "alternative rock",
 }
 
-# ---------------------------------------------------------------------------
-# Adversarial / edge-case profiles
-# (designed to probe the scoring logic for surprising behaviour)
-# ---------------------------------------------------------------------------
+# ── Adversarial / edge-case profiles ─────────────────────────────────────────
 
-# A: High energy + sad mood — the two signals pull in opposite directions.
-#    Does a genuinely sad low-energy song outscore a high-energy song that
-#    only matches energy?
 CONFLICT_ENERGY_SAD = {
-    "label":         "[EDGE] Conflicting: high energy + sad mood",
-    "genre":         "r&b",
-    "mood":          "sad",
-    "target_energy": 0.9,
+    "label":               "[EDGE] Conflicting: high energy + sad mood",
+    "mode":                "balanced",
+    "genre":               "r&b",
+    "mood":                "sad",
+    "target_energy":       0.9,
+    "preferred_mood_tags": ["sad", "heartbreak"],
+    "wants_instrumental":  False,
 }
 
-# B: Genre that does not exist in the catalog — zero genre points for every
-#    song, so mood + energy are the only differentiators.
 GHOST_GENRE = {
-    "label":         "[EDGE] Ghost genre (no catalog match)",
-    "genre":         "bossa nova",
-    "mood":          "relaxed",
-    "target_energy": 0.5,
+    "label":               "[EDGE] Ghost genre (no catalog match)",
+    "mode":                "balanced",
+    "genre":               "bossa nova",
+    "mood":                "relaxed",
+    "target_energy":       0.5,
+    "preferred_mood_tags": ["relaxed", "cozy"],
 }
 
-# C: Perfect-middle energy (0.5) with no genre/mood match likely — rewards
-#    songs right at the midpoint; reveals whether mid-energy songs cluster.
 NEUTRAL_ENERGY = {
-    "label":         "[EDGE] Neutral energy (0.5), no dominant genre",
-    "genre":         "ambient",
-    "mood":          "focused",
-    "target_energy": 0.5,
+    "label":               "[EDGE] Neutral energy (0.5), no dominant genre",
+    "mode":                "mood_first",
+    "genre":               "ambient",
+    "mood":                "focused",
+    "target_energy":       0.5,
+    "preferred_mood_tags": ["focused", "calm"],
+    "wants_instrumental":  True,
 }
 
-# D: Extreme low energy + angry mood — tests the floor of the energy scale
-#    and whether the system surfaces a quiet-but-angry song or an accidental
-#    high-energy hit because genre points dominate.
 QUIET_ANGRY = {
-    "label":         "[EDGE] Quiet angry (energy=0.05, mood=angry)",
-    "genre":         "metal",
-    "mood":          "angry",
-    "target_energy": 0.05,
+    "label":               "[EDGE] Quiet angry (energy=0.05, mood=angry)",
+    "mode":                "energy_focused",
+    "genre":               "metal",
+    "mood":                "angry",
+    "target_energy":       0.05,
+    "preferred_mood_tags": ["angry", "aggressive"],
 }
-
-# ---------------------------------------------------------------------------
 
 ALL_PROFILES = [
     HIGH_ENERGY_POP,
@@ -92,37 +117,71 @@ ALL_PROFILES = [
     QUIET_ANGRY,
 ]
 
+# ── Challenge 4 — tabulate display ───────────────────────────────────────────
 
-def print_results(user_prefs: dict, recommendations: list) -> None:
-    label = user_prefs["label"]
+def print_results(profile: dict, recommendations: list) -> None:
+    label    = profile["label"]
+    mode     = profile.get("mode", "balanced")
+    mode_desc = SCORING_MODES.get(mode, {}).get("description", mode)
+
+    prefs_for_max = {k: v for k, v in profile.items()
+                     if k not in ("label", "mode")}
+    max_score = _max_score(mode, prefs_for_max)
+
     print()
-    print("=" * 60)
+    print("=" * 72)
     print(f"  {label}")
-    print(f"  genre={user_prefs['genre']}  "
-          f"mood={user_prefs['mood']}  "
-          f"energy={user_prefs['target_energy']}")
-    print("=" * 60)
+    print(f"  mode: {mode}  ({mode_desc})")
+    print(f"  genre={profile.get('genre')}  "
+          f"mood={profile.get('mood')}  "
+          f"energy={profile.get('target_energy')}  "
+          f"max_score={max_score:.2f}")
+    print("=" * 72)
+
+    # Build table rows
+    rows = []
     for rank, (song, score, explanation) in enumerate(recommendations, start=1):
-        print(f"\n  #{rank}  {song['title']}  —  {song['artist']}")
-        print(f"       Genre: {song['genre']:14s}  Mood: {song['mood']}")
-        print(f"       Score: {score:.3f} / 4.000")
-        for reason in explanation.split(", "):
-            print(f"         • {reason}")
+        # Shorten explanation: split on ", " and wrap bullet points
+        parts = explanation.split(", ")
+        reason_lines = "\n".join(f"• {p}" for p in parts)
+        rows.append([
+            f"#{rank}",
+            song["title"],
+            song["artist"],
+            song["genre"],
+            song["mood"],
+            song.get("subgenre", ""),
+            song.get("popularity", "—"),
+            song.get("release_decade", "—"),
+            f"{score:.3f} / {max_score:.2f}",
+            reason_lines,
+        ])
+
+    headers = [
+        "#", "Title", "Artist", "Genre", "Mood",
+        "Subgenre", "Pop", "Era", "Score", "Reasons",
+    ]
+
+    print(tabulate(rows, headers=headers, tablefmt="rounded_outline",
+                   maxcolwidths=[None, 22, 18, 12, 10, 20, 4, 6, 14, 42]))
     print()
 
+
+# ── Runner ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     songs = load_songs("data/songs.csv")
 
     for profile in ALL_PROFILES:
-        # score_song / recommend_songs only read genre / mood / target_energy
-        prefs = {k: v for k, v in profile.items() if k != "label"}
-        recommendations = recommend_songs(prefs, songs, k=5)
+        prefs = {k: v for k, v in profile.items() if k not in ("label", "mode")}
+        mode  = profile.get("mode", "balanced")
+        recommendations = recommend_songs(prefs, songs, k=5,
+                                          mode=mode, diversity=True)
         print_results(profile, recommendations)
 
-    print("=" * 60)
+    print("=" * 72)
     print("  Simulation complete.")
-    print("=" * 60)
+    print("=" * 72)
     print()
 
 
