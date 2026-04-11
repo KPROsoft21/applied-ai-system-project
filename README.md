@@ -17,17 +17,47 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders like Spotify combine collaborative filtering (learning from millions of users' behavior) with content-based filtering (analyzing the audio properties of songs themselves). This simulation focuses entirely on content-based filtering — it ignores other users and instead matches songs directly to what a single user says they want. The priority is "vibe proximity": rather than recommending the loudest or most popular track, the system rewards songs whose measurable attributes land closest to the user's stated preferences.
 
-Some prompts to answer:
+### `Song` features used in scoring
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+- `genre` — the musical category (pop, lofi, rock, ambient, jazz, synthwave, indie pop, hip-hop, r&b, classical, edm, country, metal, funk, soul)
+- `mood` — the emotional label (happy, chill, intense, relaxed, focused, moody, uplifting, sad, melancholic, euphoric, nostalgic, angry, soulful, romantic)
+- `energy` — a 0–1 float measuring intensity and activation level
+- `valence` — a 0–1 float measuring emotional brightness (high = happy, low = dark)
+- `acousticness` — a 0–1 float indicating how acoustic vs. electronic the track is
+- `tempo_bpm` — beats per minute; stored for context and potential tiebreaking
+- `danceability` — a 0–1 float; stored for context and potential tiebreaking
 
-You can include a simple diagram or bullet list if helpful.
+### `UserProfile` fields used in scoring
+
+- `favorite_genre` — matched exactly against each song's genre
+- `favorite_mood` — matched exactly against each song's mood
+- `target_energy` — the desired energy level; songs are scored by closeness to this value
+- `likes_acoustic` — boolean; grants a small bonus to high-acousticness songs when `True`
+
+### Algorithm Recipe
+
+Scoring is a weighted point sum applied to every song in the catalog. The song with the highest total is ranked first.
+
+```
+score(song, user) =
+    2.0  × genre_match        ← +2.0 if genre matches exactly, else +0.0
+  + 1.0  × mood_match         ← +1.0 if mood matches exactly, else +0.0
+  + 1.0  × energy_proximity   ← +1.0 × (1 - |song.energy - user.target_energy|)
+
+Maximum possible score: 4.0
+```
+
+After every song is scored, the list is sorted highest-to-lowest and the top `k` results (default 5) are returned alongside the score and a plain-language explanation.
+
+**Why these weights?** Genre carries the most points (2.0) because it encodes the entire sonic world of a track — instrumentation, production style, tempo feel, and cultural context — none of which a single number can capture. Mood earns the second slot (1.0) because it crosses genre lines: a "chill" lofi track and a "chill" ambient track share a feeling even though they sound different, so mood alone should not override genre. Energy proximity fills the remaining point as the strongest continuous signal; it differentiates songs within the same genre and mood without requiring an exact match.
+
+### Expected Biases
+
+- **Genre dominance.** A 2.0-point genre bonus means two genre mismatches can never be overcome by a perfect mood and energy match combined. A great song in a related-but-different genre (e.g., ambient when the user asked for lofi) will always score lower than a mediocre same-genre track. This is the right tradeoff for a small catalog but would be too rigid at scale.
+- **Exact-match brittleness.** Genre and mood are compared as plain strings. "Indie pop" and "pop" share obvious overlap but score zero genre points against each other. A user who loves "hip-hop" would get no genre credit for a "funk" song, even though the groove and rhythm feel are closely related.
+- **Valence blindness.** Two songs with identical genre, mood, and energy scores can differ dramatically in emotional tone — one bright and uplifting, one dark and melancholic — and the recipe cannot tell them apart. Adding a valence similarity term would fix this.
 
 ---
 
@@ -209,3 +239,5 @@ A few sentences about what you learned:
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
 
+
+![alt text](image.png)
