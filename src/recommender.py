@@ -92,9 +92,9 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     Required by recommend_songs() and src/main.py
 
     Scoring recipe (max 4.0 points):
-      +2.0  exact genre match
+      +1.0  exact genre match      ← halved from 2.0 (weight-shift experiment)
       +1.0  exact mood match
-      +1.0  energy proximity: 1 - |song.energy - user.target_energy|
+      +2.0  energy proximity: 1 - |song.energy - user.target_energy|   ← doubled from 1.0
 
     Returns:
         (score, reasons) where reasons is a list of human-readable strings
@@ -103,19 +103,19 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     score = 0.0
     reasons = []
 
-    # Genre match — worth the most because genre defines the entire sonic world
+    # Genre match — halved to 1.0 to reduce genre dominance (weight-shift experiment)
     if song["genre"] == user_prefs.get("genre", ""):
-        score += 2.0
-        reasons.append(f"genre match: {song['genre']} (+2.0)")
+        score += 1.0
+        reasons.append(f"genre match: {song['genre']} (+1.0)")
 
     # Mood match — second priority; mood can cross genre lines
     if song["mood"] == user_prefs.get("mood", ""):
         score += 1.0
         reasons.append(f"mood match: {song['mood']} (+1.0)")
 
-    # Energy proximity — rewards closeness to the user's target, not just high/low values
+    # Energy proximity — doubled to 2.0 max to offset halved genre weight (weight-shift experiment)
     target_energy = user_prefs.get("target_energy", 0.5)
-    energy_points = round(1.0 - abs(song["energy"] - target_energy), 3)
+    energy_points = round(2.0 * (1.0 - abs(song["energy"] - target_energy)), 3)
     score += energy_points
     reasons.append(f"energy proximity: {song['energy']} vs target {target_energy} (+{energy_points})")
 
