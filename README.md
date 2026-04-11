@@ -240,4 +240,5 @@ A few sentences about what you learned:
 - Where do you think human judgment still matters, even if the model seems "smart"
 
 
-![alt text](image.png)
+<img width="505" height="632" alt="Screenshot 2026-04-11 at 4 55 56 PM" src="https://github.com/user-attachments/assets/e8b97c9c-a4c7-4e80-958a-ebfbf31ba15f" />
+
