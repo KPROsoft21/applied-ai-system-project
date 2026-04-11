@@ -196,8 +196,6 @@ Write 1 to 2 paragraphs here about what you learned:
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
 
-<img width="505" height="632" alt="Screenshot 2026-04-11 at 4 55 56 PM" src="https://github.com/user-attachments/assets/e8b97c9c-a4c7-4e80-958a-ebfbf31ba15f" />
-
 ---
 
 ## 7. `model_card_template.md`
