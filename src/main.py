@@ -6,10 +6,34 @@ Challenges implemented:
   2. Four scoring modes: balanced, genre_first, mood_first, energy_focused.
   3. Diversity penalty: repeat artists and genre saturation are penalised.
   4. Tabulate-based summary table for every profile's top-5.
+  5. Reliability/Testing System: ReliabilityChecker validates every result set.
+  6. Agentic Workflow: RecommenderAgent plans, acts, checks, and retries on
+     low confidence before results are shown.
 """
 
+import logging
 from tabulate import tabulate
-from src.recommender import load_songs, recommend_songs, SCORING_MODES
+from src.recommender import load_songs, SCORING_MODES
+from src.reliability import ReliabilityChecker
+from src.agent import RecommenderAgent
+
+# ── logging setup ────────────────────────────────────────────────────────────
+
+def _configure_logging() -> None:
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    fh = logging.FileHandler("recommender.log", mode="w", encoding="utf-8")
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(logging.Formatter(
+        "%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+        datefmt="%H:%M:%S",
+    ))
+    root.addHandler(fh)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARNING)
+    ch.setFormatter(logging.Formatter("%(levelname)s  %(message)s"))
+    root.addHandler(ch)
+
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,11 +53,9 @@ def _max_score(mode: str, user_prefs: dict) -> float:
 HIGH_ENERGY_POP = {
     "label":               "High-Energy Pop",
     "mode":                "genre_first",
-    # core
     "genre":               "pop",
     "mood":                "happy",
     "target_energy":       0.9,
-    # challenge 1 extras
     "popularity_target":   80,
     "preferred_decade":    "2020s",
     "preferred_mood_tags": ["happy", "uplifting", "energetic"],
@@ -117,31 +139,34 @@ ALL_PROFILES = [
     QUIET_ANGRY,
 ]
 
-# ── Challenge 4 — tabulate display ───────────────────────────────────────────
+# ── display ───────────────────────────────────────────────────────────────────
 
-def print_results(profile: dict, recommendations: list) -> None:
-    label    = profile["label"]
-    mode     = profile.get("mode", "balanced")
-    mode_desc = SCORING_MODES.get(mode, {}).get("description", mode)
+def print_results(profile: dict, agent_result: dict) -> None:
+    recommendations = agent_result["results"]
+    report          = agent_result["report"]
+    mode_used       = agent_result["mode_used"]
+    attempts        = agent_result["attempts"]
+    fallback_reason = agent_result["fallback_reason"]
+
+    label     = profile["label"]
+    mode_desc = SCORING_MODES.get(mode_used, {}).get("description", mode_used)
 
     prefs_for_max = {k: v for k, v in profile.items()
                      if k not in ("label", "mode")}
-    max_score = _max_score(mode, prefs_for_max)
+    max_score = _max_score(mode_used, prefs_for_max)
 
     print()
     print("=" * 72)
     print(f"  {label}")
-    print(f"  mode: {mode}  ({mode_desc})")
+    print(f"  mode: {mode_used}  ({mode_desc})")
     print(f"  genre={profile.get('genre')}  "
           f"mood={profile.get('mood')}  "
           f"energy={profile.get('target_energy')}  "
           f"max_score={max_score:.2f}")
     print("=" * 72)
 
-    # Build table rows
     rows = []
     for rank, (song, score, explanation) in enumerate(recommendations, start=1):
-        # Shorten explanation: split on ", " and wrap bullet points
         parts = explanation.split(", ")
         reason_lines = "\n".join(f"• {p}" for p in parts)
         rows.append([
@@ -161,24 +186,57 @@ def print_results(profile: dict, recommendations: list) -> None:
         "#", "Title", "Artist", "Genre", "Mood",
         "Subgenre", "Pop", "Era", "Score", "Reasons",
     ]
-
     print(tabulate(rows, headers=headers, tablefmt="rounded_outline",
                    maxcolwidths=[None, 22, 18, 12, 10, 20, 4, 6, 14, 42]))
+
+    # Agent status line
+    if attempts == 1:
+        print(f"  Agent        attempts=1  mode={mode_used}  (direct)")
+    else:
+        print(f"  Agent        attempts=2  mode={mode_used}  "
+              f"[fallback triggered: {fallback_reason}]")
+
+    # Reliability status line
+    confidence = report["confidence"]
+    warnings   = report["warnings"]
+    passed     = report["passed"]
+    if warnings:
+        print(f"  Reliability  confidence={confidence:.2f}  "
+              f"passed={len(passed)}  warnings={len(warnings)}")
+        for w in warnings:
+            print(f"  [WARN] {w}")
+    else:
+        print(f"  Reliability  confidence={confidence:.2f}  all checks passed")
     print()
 
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    songs = load_songs("data/songs.csv")
+    _configure_logging()
+    songs   = load_songs("data/songs.csv")
+    checker = ReliabilityChecker(songs)
+    agent   = RecommenderAgent(songs, checker)
 
     for profile in ALL_PROFILES:
-        prefs = {k: v for k, v in profile.items() if k not in ("label", "mode")}
-        mode  = profile.get("mode", "balanced")
-        recommendations = recommend_songs(prefs, songs, k=5,
-                                          mode=mode, diversity=True)
-        print_results(profile, recommendations)
+        agent_result = agent.run(profile, top_k=5)
+        print_results(profile, agent_result)
 
+    summary = checker.summary()
+    print("=" * 72)
+    print(f"  Reliability Summary — {summary['total_runs']} profiles evaluated")
+    print(f"  Average confidence : {summary['avg_confidence']:.2f}")
+    print(f"  Perfect runs       : {summary['perfect_runs']} / {summary['total_runs']}")
+    wc = summary["warning_counts"]
+    if wc:
+        print("  Warning breakdown  :")
+        for key, count in wc.items():
+            print(f"    {key:<20} : {count}")
+    else:
+        print("  No warnings detected")
+    print("  Full log saved to  : recommender.log")
+    print("=" * 72)
+    print()
     print("=" * 72)
     print("  Simulation complete.")
     print("=" * 72)

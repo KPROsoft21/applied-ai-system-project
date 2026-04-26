@@ -1,5 +1,8 @@
+import logging
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Challenge 2 — Scoring modes (Strategy pattern)
@@ -136,6 +139,7 @@ def load_songs(csv_path: str) -> List[Dict]:
     """
     import csv
     songs = []
+    logger.info("Loading songs from %s", csv_path)
     with open(csv_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames or []
@@ -158,6 +162,7 @@ def load_songs(csv_path: str) -> List[Dict]:
                 "instrumental":   int(row.get("instrumental", 0)),
                 "subgenre":       row.get("subgenre", ""),
             })
+    logger.debug("Loaded %d songs (%d fields)", len(songs), len(fieldnames))
     print(f"Loaded {len(songs)} songs  ({len(fieldnames)} fields each)")
     return songs
 
@@ -262,6 +267,10 @@ def score_song(user_prefs: Dict, song: Dict,
             score += 0.5
             reasons.append(f"subgenre match: {preferred_subgenre} (+0.50)")
 
+    logger.debug(
+        "score_song genre=%s mood=%s energy=%.2f → %.3f",
+        song.get("genre"), song.get("mood"), song.get("energy", 0), score,
+    )
     return round(score, 3), reasons
 
 
@@ -285,6 +294,7 @@ def diversity_rerank(
     (not the penalised one), so displayed scores remain interpretable.
     Penalty notes are appended to the explanation string.
     """
+    logger.debug("diversity_rerank: selecting %d from %d candidates", k, len(scored))
     selected: List[Tuple[Dict, float, str]] = []
     remaining = list(scored)
 
@@ -345,12 +355,15 @@ def recommend_songs(
     Returns:
         List of (song_dict, score, explanation) tuples, length <= k.
     """
+    logger.info("recommend_songs: %d songs, mode=%s, diversity=%s", len(songs), mode, diversity)
     scored = [
         (song, score, ", ".join(reasons))
         for song in songs
         for score, reasons in [score_song(user_prefs, song, mode=mode)]
     ]
     scored.sort(key=lambda x: x[1], reverse=True)
+    if scored:
+        logger.debug("top result: '%s' score=%.3f", scored[0][0].get("title", "?"), scored[0][1])
 
     if diversity:
         return diversity_rerank(scored, k)

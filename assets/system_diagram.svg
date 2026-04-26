@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="690" viewBox="0 0 720 690">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#555"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="690" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="360" y="30" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#111">
+    Music Recommender — System Diagram
+  </text>
+
+  <!-- ── INPUT: User Profiles ─────────────────────────────────────────────── -->
+  <rect x="40" y="50" width="200" height="58" rx="7"
+        fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="140" y="75" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1e3a8a">
+    User Profiles
+  </text>
+  <text x="140" y="94" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#1e3a8a">
+    7 preference dicts (genre, mood, energy)
+  </text>
+
+  <!-- ── INPUT: songs.csv ──────────────────────────────────────────────────── -->
+  <rect x="480" y="50" width="200" height="58" rx="7"
+        fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+  <text x="580" y="75" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#064e3b">
+    data/songs.csv
+  </text>
+  <text x="580" y="94" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#064e3b">
+    18 songs · 15 fields each
+  </text>
+
+  <!-- Arrows: inputs → runner -->
+  <line x1="140" y1="108" x2="270" y2="160" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="580" y1="108" x2="450" y2="160" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── RUNNER: main.py ───────────────────────────────────────────────────── -->
+  <rect x="175" y="160" width="370" height="58" rx="7"
+        fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+  <text x="360" y="184" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1e293b">
+    main.py — Runner
+  </text>
+  <text x="360" y="203" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#334155">
+    orchestrates pipeline · configures logging · prints output
+  </text>
+
+  <!-- Arrow: runner → scoring + label -->
+  <line x1="360" y1="218" x2="360" y2="260" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="368" y="242" font-family="Arial, sans-serif" font-size="9" fill="#888">scored results</text>
+
+  <!-- ── SCORING ENGINE: recommender.py ───────────────────────────────────── -->
+  <rect x="95" y="260" width="530" height="80" rx="7"
+        fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+  <text x="360" y="284" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#7c2d12">
+    recommender.py — Scoring Engine
+  </text>
+  <text x="360" y="302" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#7c2d12">
+    score_song()  →  recommend_songs()  →  diversity_rerank()
+  </text>
+  <text x="360" y="320" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#7c2d12">
+    genre · mood · energy · popularity · decade · mood tags · subgenre
+  </text>
+
+  <!-- Arrow: scoring → reliability + label -->
+  <line x1="360" y1="340" x2="360" y2="382" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="368" y="364" font-family="Arial, sans-serif" font-size="9" fill="#888">top-k list</text>
+
+  <!-- ── RELIABILITY CHECKER ───────────────────────────────────────────────── -->
+  <rect x="95" y="382" width="530" height="102" rx="7"
+        fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <!-- Badge -->
+  <rect x="456" y="374" width="160" height="17" rx="4" fill="#dc2626"/>
+  <text x="536" y="386" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#fff">
+    TESTING · GUARDRAIL
+  </text>
+  <text x="360" y="407" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#7f1d1d">
+    reliability.py — ReliabilityChecker
+  </text>
+  <text x="360" y="425" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#7f1d1d">
+    GHOST_GENRE · GHOST_MOOD · ENERGY_DEAD_ZONE · NEGATIVE_SCORE
+  </text>
+  <text x="360" y="442" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#7f1d1d">
+    LOW_CONFIDENCE · SCORE_TIE · GENRE_BUBBLE
+  </text>
+  <text x="360" y="460" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#7f1d1d">
+    → confidence score (0.0 – 1.0) + [WARN] list → back to Runner
+  </text>
+
+  <!-- Arrows: reliability → outputs -->
+  <line x1="235" y1="484" x2="170" y2="528" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="485" y1="484" x2="550" y2="528" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── OUTPUT: Console ───────────────────────────────────────────────────── -->
+  <rect x="35" y="528" width="270" height="88" rx="7"
+        fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="170" y="551" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#4c1d95">
+    Console Output
+  </text>
+  <text x="170" y="568" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#4c1d95">
+    • ranked results table (tabulate)
+  </text>
+  <text x="170" y="584" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#4c1d95">
+    • inline [WARN] messages per profile
+  </text>
+  <text x="170" y="600" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#4c1d95">
+    • reliability summary at end of run
+  </text>
+
+  <!-- ── OUTPUT: Log file ─────────────────────────────────────────────────── -->
+  <rect x="415" y="528" width="270" height="88" rx="7"
+        fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="550" y="551" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#064e3b">
+    recommender.log
+  </text>
+  <text x="550" y="568" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#064e3b">
+    • DEBUG: every score computation
+  </text>
+  <text x="550" y="584" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#064e3b">
+    • WARNING: all reliability failures
+  </text>
+  <text x="550" y="600" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" fill="#064e3b">
+    • full audit trail per run
+  </text>
+
+  <!-- Arrows: outputs → human review -->
+  <line x1="170" y1="616" x2="268" y2="648" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="550" y1="616" x2="452" y2="648" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── HUMAN REVIEW ──────────────────────────────────────────────────────── -->
+  <rect x="175" y="648" width="370" height="30" rx="7"
+        fill="#fefce8" stroke="#ca8a04" stroke-width="1.5"/>
+  <text x="360" y="668" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#78350f">
+    Human Review — reads [WARN] output · checks confidence scores · inspects log
+  </text>
+
+</svg>
