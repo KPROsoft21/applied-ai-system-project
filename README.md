@@ -380,8 +380,8 @@ applied-ai-system-final/
 ├── data/
 │   └── songs.csv         # 18-song catalog, 15 fields each
 ├── assets/
-│   └── system_diagram.svg
-├── screenshots/          # Terminal output screenshots from all 7 profiles
+│   ├── system_diagram.svg
+│   └── assets/screenshots/      # Terminal output screenshots from all 7 profiles
 ├── model_card.md
 ├── reflection.md
 ├── requirements.txt
@@ -395,13 +395,13 @@ applied-ai-system-final/
 ### Standard Profiles
 
 #### High-Energy Pop — `genre=pop · mood=happy · energy=0.9`
-![High-Energy Pop](screenshots/high-energy_pop.png)
+![High-Energy Pop](assets/screenshots/high-energy_pop.png)
 
 #### Chill Lofi — `genre=lofi · mood=chill · energy=0.25`
-![Chill Lofi](screenshots/chill_lofi.png)
+![Chill Lofi](assets/screenshots/chill_lofi.png)
 
 #### Deep Intense Rock — `genre=rock · mood=intense · energy=0.92`
-![Deep Intense Rock](screenshots/deep_intense_rock.png)
+![Deep Intense Rock](assets/screenshots/deep_intense_rock.png)
 
 ### Adversarial / Edge-Case Profiles
 
@@ -410,25 +410,25 @@ applied-ai-system-final/
 
 The sad r&b track wins #1 on genre+mood. After that, the catalog has no more sad or r&b songs, so positions 2–5 fill with loud rock, pop, and EDM entirely on energy proximity. The "sad" signal disappears after the first result.
 
-![Conflicting](screenshots/edge_conflicting_high_energy_plus_sad_mood.png)
+![Conflicting](assets/screenshots/edge_conflicting_high_energy_plus_sad_mood.png)
 
 #### Edge 2 — Ghost genre
 `genre=bossa nova · mood=relaxed · energy=0.5`
 
 Zero genre points are available. The system now flags `GHOST_GENRE` and `ENERGY_DEAD_ZONE`, lowering confidence to 0.60 and surfacing both warnings inline.
 
-![Ghost Genre](screenshots/edge_ghost_genre_no_catalog_match.png)
+![Ghost Genre](assets/screenshots/edge_ghost_genre_no_catalog_match.png)
 
 #### Edge 3 — Neutral energy, single-song genre
 `genre=ambient · mood=focused · energy=0.5`
 
 One ambient song in the catalog wins on genre alone despite missing the requested mood. `GENRE_BUBBLE` and `ENERGY_DEAD_ZONE` are both flagged.
 
-![Neutral Energy](screenshots/edge_neutral_energy_05_no_dominant_genre.png)
+![Neutral Energy](assets/screenshots/edge_neutral_energy_05_no_dominant_genre.png)
 
 #### Edge 4 — Quiet angry metal
 `genre=metal · mood=angry · energy=0.05`
 
 The loudest song in the catalog (energy 0.97) wins because it is the only metal+angry song. `GENRE_BUBBLE` is flagged and the result is noted as a best-effort pick, not a genuine match.
 
-![Quiet Angry](screenshots/edge_quiet_angry_energy005_mood_angry.png)
+![Quiet Angry](assets/screenshots/edge_quiet_angry_energy005_mood_angry.png)
