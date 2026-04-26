@@ -429,6 +429,8 @@ One ambient song in the catalog wins on genre alone despite missing the requeste
 #### Edge 4 — Quiet angry metal
 `genre=metal · mood=angry · energy=0.05`
 
+#### codepath loom video link https://www.loom.com/share/995a2e3e666b4aeca07c569bb25427eb
+
 The loudest song in the catalog (energy 0.97) wins because it is the only metal+angry song. `GENRE_BUBBLE` is flagged and the result is noted as a best-effort pick, not a genuine match.
 
 ![Quiet Angry](assets/screenshots/edge_quiet_angry_energy005_mood_angry.png)
